@@ -1,0 +1,194 @@
+This is an example of a "taskUpdated" event:
+
+
+{
+  "event": "taskUpdated",
+  "history_items": [
+    {
+      "id": "4701553421651494534",
+      "type": 1,
+      "date": "1756030561187",
+      "field": "status",
+      "parent_id": "901806884681",
+      "data": {
+        "recur_new_status": "to do"
+      },
+      "source": null,
+      "user": {
+        "id": 182620556,
+        "username": "Inbal Katz",
+        "email": "inbalagur1@gmail.com",
+        "color": "",
+        "initials": "IK",
+        "profilePicture": "https://attachments.clickup.com/profilePictures/182620556_W3D.jpg",
+        "role": 2,
+        "role_subtype": 0
+      },
+      "before": {
+        "status": "complete",
+        "color": "#008844",
+        "orderindex": 3,
+        "type": "closed"
+      },
+      "after": {
+        "status": "to do",
+        "color": "#f8ae00",
+        "orderindex": 1,
+        "type": "unstarted"
+      }
+    }
+  ],
+  "task_id": "86eu0k8gw",
+  "team_id": "90181045003",
+  "webhook_id": "051e808a-4ab0-449c-ab5d-69302983923d"
+}
+[ClickUp] event=taskUpdated task=86eu0k8gw payloadSize=670
+[ClickUp] Handling task updated: 86eu0k8gw
+
+
+This is an exmaple of a "get task" response payload
+
+{
+  "id": "86eu0k8gw",
+  "custom_id": null,
+  "custom_item_id": 0,
+  "name": "לפנות את התיק והתיק רחצה",
+  "text_content": "",
+  "description": "",
+  "status": {
+    "id": "p90183752522_takCAwbc",
+    "status": "to do",
+    "color": "#f8ae00",
+    "orderindex": 1,
+    "type": "unstarted"
+  },
+  "orderindex": "39908501.00000000000000000000000000000000",
+  "date_created": "1751313968196",
+  "date_updated": "1756030561025",
+  "date_closed": null,
+  "date_done": null,
+  "archived": false,
+  "creator": {
+    "id": 182620556,
+    "username": "Inbal Katz",
+    "color": "",
+    "email": "inbalagur1@gmail.com",
+    "profilePicture": "https://attachments.clickup.com/profilePictures/182620556_W3D.jpg"
+  },
+  "assignees": [
+    {
+      "id": 182620556,
+      "username": "Inbal Katz",
+      "color": "",
+      "initials": "IK",
+      "email": "inbalagur1@gmail.com",
+      "profilePicture": "https://attachments.clickup.com/profilePictures/182620556_W3D.jpg"
+    }
+  ],
+  "group_assignees": [],
+  "watchers": [
+    {
+      "id": 182620556,
+      "username": "Inbal Katz",
+      "color": "",
+      "initials": "IK",
+      "email": "inbalagur1@gmail.com",
+      "profilePicture": "https://attachments.clickup.com/profilePictures/182620556_W3D.jpg"
+    }
+  ],
+  "checklists": [],
+  "tags": [],
+  "parent": null,
+  "top_level_parent": null,
+  "priority": null,
+  "due_date": "1756602000000",
+  "start_date": "1756602000000",
+  "points": null,
+  "time_estimate": 900000,
+  "time_spent": 0,
+  "custom_fields": [
+    {
+      "id": "35839a6d-0765-4899-bd0d-9b3478fb708a",
+      "name": "End time",
+      "type": "date",
+      "type_config": {},
+      "date_created": "1755083160338",
+      "hide_from_guests": false,
+      "required": false
+    },
+    {
+      "id": "35b5112b-1e14-49de-96ed-9a7efa6c4539",
+      "name": "Parent",
+      "type": "checkbox",
+      "type_config": {},
+      "date_created": "1754919651941",
+      "hide_from_guests": false,
+      "required": false
+    },
+    {
+      "id": "db582668-de84-406e-90f6-0c4ebf891e4c",
+      "name": "Scheduled",
+      "type": "checkbox",
+      "type_config": {},
+      "date_created": "1753730221777",
+      "hide_from_guests": false,
+      "required": false
+    },
+    {
+      "id": "333e61ba-ddde-4ed9-9284-6b7000bbfe57",
+      "name": "Start time",
+      "type": "date",
+      "type_config": {},
+      "date_created": "1755083141646",
+      "hide_from_guests": false,
+      "required": false
+    }
+  ],
+  "dependencies": [],
+  "linked_tasks": [],
+  "locations": [],
+  "team_id": "90181045003",
+  "url": "https://app.clickup.com/t/86eu0k8gw",
+  "sharing": {
+    "public": false,
+    "public_share_expires_on": null,
+    "public_fields": [
+      "assignees",
+      "priority",
+      "due_date",
+      "content",
+      "comments",
+      "attachments",
+      "customFields",
+      "subtasks",
+      "tags",
+      "checklists",
+      "coverimage"
+    ],
+    "token": null,
+    "seo_optimized": false
+  },
+  "permission_level": "create",
+  "list": {
+    "id": "901806884681",
+    "name": "Tasks",
+    "access": true
+  },
+  "project": {
+    "id": "90185068812",
+    "name": "hidden",
+    "hidden": true,
+    "access": true
+  },
+  "folder": {
+    "id": "90185068812",
+    "name": "hidden",
+    "hidden": true,
+    "access": true
+  },
+  "space": {
+    "id": "90183752522"
+  },
+  "attachments": []
+}
+[ClickUp] Successfully fetched task details for: 86eu0k8gw
