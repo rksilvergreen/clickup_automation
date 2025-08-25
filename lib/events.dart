@@ -18,6 +18,62 @@ bool isEventTask(Map<String, dynamic> taskDetails) {
 
 // -------- Event handling functions --------
 
+/// Handles when a new event task is created
+///
+/// This function initializes all relevant custom fields for a newly created event task,
+/// including start time, end time, status, and relevance date based on the task's dates.
+///
+/// [taskDetails] - Complete task details from ClickUp API
+Future<void> onEventCreated(Map<String, dynamic> taskDetails) async {
+  final taskId = taskDetails['id'];
+  final taskName = taskDetails['name'];
+
+  stdout.writeln('[Events] Processing new event creation for: $taskName (ID: $taskId)');
+
+  // Get current dates from task details and convert to DateTime
+  final startDate = _parseTimestamp(taskDetails['start_date']);
+  final dueDate = _parseTimestamp(taskDetails['due_date']);
+  final (relevanceNum, relevanceUnit) = _parseRelevanceValues(taskDetails);
+
+  stdout.writeln('[Events] Initial dates - Start: $startDate, Due: $dueDate');
+  stdout.writeln('[Events] Initial relevance values - Num: $relevanceNum, Unit: ${relevanceUnit?.toDisplayString()}');
+
+  // Calculate all the required values
+  final startTime = calculateStartTime(startDate, dueDate);
+  final endTime = calculateEndTime(dueDate);
+  final status = calculateStatus(startTime, endTime);
+  final relevanceDate = calculateRelevanceDate(startTime, endTime, relevanceNum, relevanceUnit);
+
+  stdout.writeln(
+      '[Events] Calculated values - StartTime: $startTime, EndTime: $endTime, Status: $status, RelevanceDate: $relevanceDate');
+
+  // Set all custom fields concurrently
+  final tasks = <Future<void>>[];
+
+  // Always set start time if we have one
+  if (startTime != null) {
+    tasks.add(setStartTime(taskId, startTime));
+  }
+
+  // Always set end time if we have one
+  if (endTime != null) {
+    tasks.add(setEndTime(taskId, endTime));
+  }
+
+  // Always set status
+  tasks.add(setStatus(taskId, status));
+
+  // Set relevance date if we calculated one
+  if (relevanceDate != null) {
+    tasks.add(setRelevanceDate(taskId, relevanceDate));
+  }
+
+  // Execute all updates concurrently
+  await Future.wait(tasks);
+
+  stdout.writeln('[Events] Event creation processing completed for: $taskName');
+}
+
 /// Handles updates to ClickUp tasks of type "event"
 ///
 /// This function checks if the start date, due date, or relevance fields have changed and
@@ -32,8 +88,8 @@ Future<void> onEventUpdated(Map<String, dynamic> taskDetails, Map<String, dynami
   stdout.writeln('[Events] Processing event update for: $taskName (ID: $taskId)');
 
   // Get current dates from task details and convert to DateTime
-  final currentStartDate = _parseTimestamp(taskDetails['start_date']);
-  final currentDueDate = _parseTimestamp(taskDetails['due_date']);
+  final startDate = _parseTimestamp(taskDetails['start_date']);
+  final dueDate = _parseTimestamp(taskDetails['due_date']);
   final (relevanceNum, relevanceUnit) = _parseRelevanceValues(taskDetails);
 
   // Check what changed in the webhook
@@ -46,10 +102,10 @@ Future<void> onEventUpdated(Map<String, dynamic> taskDetails, Map<String, dynami
 
     if (field == 'start_date') {
       stdout.writeln('[Events] Start date changed from $before to $after');
-      await onStartDateChanged(taskId, currentStartDate, currentDueDate, relevanceNum, relevanceUnit);
+      await onStartDateChanged(taskId, startDate, dueDate, relevanceNum, relevanceUnit);
     } else if (field == 'due_date') {
       stdout.writeln('[Events] Due date changed from $before to $after');
-      await onDueDateChanged(taskId, currentStartDate, currentDueDate, relevanceNum, relevanceUnit);
+      await onDueDateChanged(taskId, startDate, dueDate, relevanceNum, relevanceUnit);
     } else if (field == 'custom_field') {
       // Check if this is a relevance field change
       final customField = item['custom_field'] as Map<String, dynamic>?;
@@ -58,10 +114,10 @@ Future<void> onEventUpdated(Map<String, dynamic> taskDetails, Map<String, dynami
 
         if (customFieldId == env.relevanceNumCustomFieldId) {
           stdout.writeln('[Events] Relevance number changed from $before to $after');
-          await onRelevanceNumChanged(taskId, currentStartDate, currentDueDate, relevanceNum, relevanceUnit);
+          await onRelevanceNumChanged(taskId, startDate, dueDate, relevanceNum, relevanceUnit);
         } else if (customFieldId == env.relevanceUnitCustomFieldId) {
           stdout.writeln('[Events] Relevance unit changed from $before to $after');
-          await onRelevanceUnitChanged(taskId, currentStartDate, currentDueDate, relevanceNum, relevanceUnit);
+          await onRelevanceUnitChanged(taskId, startDate, dueDate, relevanceNum, relevanceUnit);
         }
       }
     }

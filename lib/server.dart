@@ -8,6 +8,7 @@ import 'package:shelf_router/shelf_router.dart';
 import 'package:crypto/crypto.dart';
 import 'environment.dart' as env;
 import 'events.dart';
+import 'tags.dart';
 
 // -------- Server setup and routing --------
 
@@ -27,7 +28,7 @@ Future<HttpServer> createServer() async {
   app.post('/webhooks/clickup', (Request req) async {
     final raw = await req.readAsString();
 
-    // print(prettyJsonString(raw));
+    print(prettyJsonString(raw));
 
     // Verify webhook signature if secret is configured
     if (env.secret.isNotEmpty) {
@@ -55,6 +56,9 @@ Future<HttpServer> createServer() async {
           break;
         case 'taskUpdated':
           await _onTaskUpdated(body, taskId);
+          break;
+        case 'taskTagUpdated':
+          await _onTaskTagUpdated(body, taskId);
           break;
         default:
           stdout.writeln('[ClickUp] Unhandled event type: $event');
@@ -128,8 +132,16 @@ Future<void> _onTaskCreated(Map<String, dynamic> body, String? taskId) async {
     if (taskDetails != null) {
       stdout.writeln(
           '[ClickUp] Task created - Name: ${taskDetails['name']}, Status: ${taskDetails['status']?['status']}');
-      // TODO: Implement your task creation logic here
-      // Example: Send notifications, update external systems, etc.
+
+      // Check if this is an event task and handle it accordingly
+      if (isEventTask(taskDetails)) {
+        stdout.writeln('[ClickUp] Detected event task, forwarding to events handler');
+        await onEventCreated(taskDetails);
+      } else {
+        stdout.writeln('[ClickUp] Regular task creation - not an event');
+        // TODO: Implement your regular task creation logic here
+        // Example: Send notifications, update external systems, etc.
+      }
     }
   }
 }
@@ -151,6 +163,50 @@ Future<void> _onTaskUpdated(Map<String, dynamic> body, String? taskId) async {
         stdout.writeln('[ClickUp] Regular task update - not an event');
         // TODO: Implement your regular task update logic here
         // Example: Sync changes to external systems, trigger workflows, etc.
+      }
+    }
+  }
+}
+
+/// Handles when task tags are updated
+///
+/// [body] - The webhook payload containing tag change information
+/// [taskId] - The ClickUp task ID
+Future<void> _onTaskTagUpdated(Map<String, dynamic> body, String? taskId) async {
+  stdout.writeln('[ClickUp] Handling task tag updated: $taskId');
+
+  if (taskId != null) {
+    final taskDetails = await fetchTaskDetails(taskId);
+    if (taskDetails != null) {
+      final taskName = taskDetails['name'];
+      stdout.writeln('[ClickUp] Task tag updated - Name: $taskName, Status: ${taskDetails['status']?['status']}');
+
+      // Extract tag information from the webhook payload
+      final historyItems = body['history_items'] as List? ?? [];
+      for (final item in historyItems) {
+        final field = item['field'];
+        final before = item['before'];
+        final after = item['after'];
+
+        if (field == 'tag') {
+          // Tag was added
+          stdout.writeln('[ClickUp] Tag added: $after');
+          if (after != null && after is List && after.isNotEmpty) {
+            final tagName = after[0]['name'] as String?;
+            if (tagName != null && tagName == env.purchaseTagName) {
+              await onPurchaseTagAdded(taskId, tagName);
+            }
+          }
+        } else if (field == 'tag_removed') {
+          // Tag was removed
+          stdout.writeln('[ClickUp] Tag removed: $before');
+          if (before != null && before is List && before.isNotEmpty) {
+            final tagName = before[0]['name'] as String?;
+            if (tagName != null && tagName == env.purchaseTagName) {
+              await onPurchaseTagRemoved(taskId, tagName);
+            }
+          }
+        }
       }
     }
   }

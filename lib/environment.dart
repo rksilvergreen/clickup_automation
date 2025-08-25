@@ -19,6 +19,8 @@ late final String endTimeCustomFieldId;
 late final String relevanceNumCustomFieldId;
 late final String relevanceUnitCustomFieldId;
 late final String relevanceDateCustomFieldId;
+late final String shoppingListId;
+late final String purchaseTagName;
 late final int port;
 
 // -------- Config from $ENV_FILE file --------
@@ -90,5 +92,7 @@ void loadEnvironmentVariables() {
   relevanceNumCustomFieldId = _env('RELEVANCE_NUM_CUSTOM_FIELD_ID', def: ''); // optional
   relevanceUnitCustomFieldId = _env('RELEVANCE_UNIT_CUSTOM_FIELD_ID', def: ''); // optional
   relevanceDateCustomFieldId = _env('RELEVANCE_DATE_CUSTOM_FIELD_ID', def: ''); // optional
+  shoppingListId = _env('SHOPPING_LIST_ID', def: ''); // optional
+  purchaseTagName = _env('PURCHASE_TAG_NAME', def: ''); // optional
   port = int.parse(_env('PORT', def: '8080'));
 }
