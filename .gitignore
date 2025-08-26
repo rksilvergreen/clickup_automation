@@ -1,3 +1,29 @@
-# https://dart.dev/guides/libraries/private-files
-# Created by `dart pub`
+# Environment and configuration files
+config/server.yaml
+config/runtime.yaml
+.env
+.env.local
+.env.production
+
+# Compiled files
+*.exe
+*.dart.js
+build/
 .dart_tool/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Dependencies
+node_modules/

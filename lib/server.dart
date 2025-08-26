@@ -6,9 +6,10 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:crypto/crypto.dart';
-import 'environment.dart' as env;
-import 'events.dart';
-import 'tags.dart';
+import 'config.dart' as config;
+import 'automations/events.dart' as events;
+import 'automations/purchase_tags.dart' as purchaseTags;
+import 'automations/task_dates.dart' as taskDates;
 
 // -------- Server setup and routing --------
 
@@ -28,12 +29,12 @@ Future<HttpServer> createServer() async {
   app.post('/webhooks/clickup', (Request req) async {
     final raw = await req.readAsString();
 
-    print(prettyJsonString(raw));
+    // print(prettyJsonString(raw));
 
     // Verify webhook signature if secret is configured
-    if (env.secret.isNotEmpty) {
+    if (config.server.webhookSecret.isNotEmpty) {
       final signature = req.headers['x-signature'];
-      if (signature == null || !_verifyWebhookSignature(raw, signature, env.secret)) {
+      if (signature == null || !_verifyWebhookSignature(raw, signature, config.server.webhookSecret)) {
         stderr.writeln('[ClickUp] Invalid webhook signature');
         return Response.forbidden('Invalid signature');
       }
@@ -49,19 +50,24 @@ Future<HttpServer> createServer() async {
           (body is Map && body['task_id'] != null) ? body['task_id'] : (body is Map ? (body['task']?['id']) : null);
       stdout.writeln('[ClickUp] event=$event task=$taskId payloadSize=${raw.length}');
 
-      // Route to appropriate handler based on event type
-      switch (event) {
-        case 'taskCreated':
-          await _onTaskCreated(body, taskId);
-          break;
-        case 'taskUpdated':
-          await _onTaskUpdated(body, taskId);
-          break;
-        case 'taskTagUpdated':
-          await _onTaskTagUpdated(body, taskId);
-          break;
-        default:
-          stdout.writeln('[ClickUp] Unhandled event type: $event');
+      if (['taskCreated', 'taskUpdated', 'taskTagUpdated'].contains(event)) {
+
+        final runtime = config.RuntimeConfig.reload();
+
+        // Route to appropriate handler based on event type
+        switch (event) {
+          case 'taskCreated':
+            await _onTaskCreated(body, taskId);
+            break;
+          case 'taskUpdated':
+            await _onTaskUpdated(body, taskId);
+            break;
+          case 'taskTagUpdated':
+            await _onTaskTagUpdated(body, taskId);
+            break;
+          default:
+            stdout.writeln('[ClickUp] Unhandled event type: $event');
+        }
       }
     } catch (_) {
       stdout.writeln('[ClickUp] non-JSON or unexpected payload, size=${raw.length}');
@@ -73,10 +79,10 @@ Future<HttpServer> createServer() async {
   final server = await serve(
     logRequests().addHandler(app),
     InternetAddress.anyIPv4,
-    env.port,
+    config.server.port,
   );
 
-  stdout.writeln('Listening on http://${server.address.host}:${server.port}  (public: ${env.publicBaseUrl})');
+  stdout.writeln('Listening on http://${server.address.host}:${server.port}  (public: ${config.server.publicBaseUrl})');
 
   return server;
 }
@@ -101,9 +107,9 @@ bool _verifyWebhookSignature(String payload, String signature, String secret) {
 Future<Map<String, dynamic>?> fetchTaskDetails(String taskId) async {
   try {
     final response = await http.get(
-      Uri.parse('https://api.clickup.com/api/v2/task/$taskId'),
+      Uri.parse('${config.api.baseUrl}/task/$taskId'),
       headers: {
-        'Authorization': env.token,
+        'Authorization': config.api.token,
         'Content-Type': 'application/json',
       },
     );
@@ -134,13 +140,14 @@ Future<void> _onTaskCreated(Map<String, dynamic> body, String? taskId) async {
           '[ClickUp] Task created - Name: ${taskDetails['name']}, Status: ${taskDetails['status']?['status']}');
 
       // Check if this is an event task and handle it accordingly
-      if (isEventTask(taskDetails)) {
-        stdout.writeln('[ClickUp] Detected event task, forwarding to events handler');
-        await onEventCreated(taskDetails);
+      if (config.runtime.automation.events && events.isRelevantEventCreate(taskDetails)) {
+        stdout.writeln('[ClickUp] Detected relevant event task creation, forwarding to events handler');
+        await events.onEventCreated(taskDetails);
+      } else if (config.runtime.automation.taskDates && taskDates.isRelevantDatesCreate(taskDetails)) {
+        stdout.writeln('[ClickUp] Detected relevant dates task creation, forwarding to task dates handler');
+        await taskDates.onTaskCreated(taskDetails);
       } else {
-        stdout.writeln('[ClickUp] Regular task creation - not an event');
-        // TODO: Implement your regular task creation logic here
-        // Example: Send notifications, update external systems, etc.
+        stdout.writeln('[ClickUp] Task creation - no automations triggered');
       }
     }
   }
@@ -156,13 +163,14 @@ Future<void> _onTaskUpdated(Map<String, dynamic> body, String? taskId) async {
           '[ClickUp] Task updated - Name: ${taskDetails['name']}, Status: ${taskDetails['status']?['status']}');
 
       // Check if this is an event task and handle it accordingly
-      if (isEventTask(taskDetails)) {
+      if (config.runtime.automation.events && events.isRelevantEventUpdate(taskDetails, body)) {
         stdout.writeln('[ClickUp] Detected event task, forwarding to events handler');
-        await onEventUpdated(taskDetails, body);
+        await events.onEventUpdated(taskDetails, body);
+      } else if (config.runtime.automation.taskDates && taskDates.isRelevantDatesUpdate(body)) {
+        stdout.writeln('[ClickUp] Detected relevant dates task update, forwarding to task dates handler');
+        await taskDates.onTaskUpdated(taskDetails, body);
       } else {
-        stdout.writeln('[ClickUp] Regular task update - not an event');
-        // TODO: Implement your regular task update logic here
-        // Example: Sync changes to external systems, trigger workflows, etc.
+        stdout.writeln('[ClickUp] Task update - no automations triggered');
       }
     }
   }
@@ -192,18 +200,18 @@ Future<void> _onTaskTagUpdated(Map<String, dynamic> body, String? taskId) async 
           // Tag was added
           stdout.writeln('[ClickUp] Tag added: $after');
           if (after != null && after is List && after.isNotEmpty) {
-            final tagName = after[0]['name'] as String?;
-            if (tagName != null && tagName == env.purchaseTagName) {
-              await onPurchaseTagAdded(taskId, tagName);
+            final tagDetails = after[0] as Map<String, dynamic>;
+            if (config.runtime.automation.purchaseTags && purchaseTags.isRelevantPurchaseTagAdded(tagDetails)) {
+              await purchaseTags.onPurchaseTagAdded(taskDetails, tagDetails);
             }
           }
         } else if (field == 'tag_removed') {
           // Tag was removed
           stdout.writeln('[ClickUp] Tag removed: $before');
           if (before != null && before is List && before.isNotEmpty) {
-            final tagName = before[0]['name'] as String?;
-            if (tagName != null && tagName == env.purchaseTagName) {
-              await onPurchaseTagRemoved(taskId, tagName);
+            final tagDetails = before[0] as Map<String, dynamic>;
+            if (config.runtime.automation.purchaseTags && purchaseTags.isRelevantPurchaseTagRemoved(tagDetails)) {
+              await purchaseTags.onPurchaseTagRemoved(taskDetails, tagDetails);
             }
           }
         }

@@ -1,0 +1,24 @@
+# ClickUp API Configuration
+# These constants are application-wide and typically don't change between deployments
+
+# ClickUp API Configuration
+CLICKUP_BASE_URL: "https://api.clickup.com/api/v2"
+CLICKUP_TEAM_ID: "90181045003"
+CLICKUP_TOKEN: "pk_182584443_C89L86TIKSVYT0G68I61N3FFCXHXFX3I" 
+
+# ClickUp Workspace Constants
+task_types:
+  TASK_TYPE_ID_EVENT: "1011"
+
+lists:
+  LIST_ID_SHOPPING: "901810374798"
+
+custom_fields:
+  CUSTOM_FIELD_ID_START_TIME: "ea56a6af-6e6d-4742-b792-02ca01350dad"
+  CUSTOM_FIELD_ID_END_TIME: "94e29fad-661c-4f24-ba1e-61618be81540"
+  CUSTOM_FIELD_ID_RELEVANCE_NUM: "ba8bc4bb-2411-4056-b2af-97602a749f40"
+  CUSTOM_FIELD_ID_RELEVANCE_UNIT: "63cd786f-4476-46a2-a909-580d1c3e858f"
+  CUSTOM_FIELD_ID_RELEVANCE_DATE: "148cec0b-93db-4477-ae8c-d14c2326984d"
+
+tags:
+  TAG_NAME_PURCHASE: "purchase" 

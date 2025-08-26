@@ -49,31 +49,31 @@ This is an example of a "taskUpdated" event:
 This is an exmaple of a "get task" response payload
 
 {
-  "id": "86eu0k8gw",
+  "id": "86eudz1pu",
   "custom_id": null,
   "custom_item_id": 0,
-  "name": "לפנות את התיק והתיק רחצה",
+  "name": "When and how do we use Goals",
   "text_content": "",
   "description": "",
   "status": {
-    "id": "p90183752522_takCAwbc",
-    "status": "to do",
-    "color": "#f8ae00",
-    "orderindex": 1,
-    "type": "unstarted"
+    "id": "p90183752522_eK5UJmNJ",
+    "status": "backlog",
+    "color": "#656f7d",
+    "orderindex": 0,
+    "type": "open"
   },
-  "orderindex": "39908501.00000000000000000000000000000000",
-  "date_created": "1751313968196",
-  "date_updated": "1756030561025",
+  "orderindex": "120475891.00000000000000000000000000000000",
+  "date_created": "1754562367243",
+  "date_updated": "1756199756140",
   "date_closed": null,
   "date_done": null,
   "archived": false,
   "creator": {
-    "id": 182620556,
-    "username": "Inbal Katz",
+    "id": 182584443,
+    "username": "Ron Katz",
     "color": "",
-    "email": "inbalagur1@gmail.com",
-    "profilePicture": "https://attachments.clickup.com/profilePictures/182620556_W3D.jpg"
+    "email": "rksilvergreen@gmail.com",
+    "profilePicture": "https://attachments.clickup.com/profilePictures/182584443_jc0.jpg"
   },
   "assignees": [
     {
@@ -83,10 +83,26 @@ This is an exmaple of a "get task" response payload
       "initials": "IK",
       "email": "inbalagur1@gmail.com",
       "profilePicture": "https://attachments.clickup.com/profilePictures/182620556_W3D.jpg"
+    },
+    {
+      "id": 182584443,
+      "username": "Ron Katz",
+      "color": "",
+      "initials": "RK",
+      "email": "rksilvergreen@gmail.com",
+      "profilePicture": "https://attachments.clickup.com/profilePictures/182584443_jc0.jpg"
     }
   ],
   "group_assignees": [],
   "watchers": [
+    {
+      "id": 182584443,
+      "username": "Ron Katz",
+      "color": "",
+      "initials": "RK",
+      "email": "rksilvergreen@gmail.com",
+      "profilePicture": "https://attachments.clickup.com/profilePictures/182584443_jc0.jpg"
+    },
     {
       "id": 182620556,
       "username": "Inbal Katz",
@@ -101,18 +117,18 @@ This is an exmaple of a "get task" response payload
   "parent": null,
   "top_level_parent": null,
   "priority": null,
-  "due_date": "1756602000000",
-  "start_date": "1756602000000",
+  "due_date": null,
+  "start_date": null,
   "points": null,
-  "time_estimate": 900000,
+  "time_estimate": null,
   "time_spent": 0,
   "custom_fields": [
     {
-      "id": "35839a6d-0765-4899-bd0d-9b3478fb708a",
-      "name": "End time",
+      "id": "94e29fad-661c-4f24-ba1e-61618be81540",
+      "name": "End Time",
       "type": "date",
       "type_config": {},
-      "date_created": "1755083160338",
+      "date_created": "1756043056871",
       "hide_from_guests": false,
       "required": false
     },
@@ -126,6 +142,56 @@ This is an exmaple of a "get task" response payload
       "required": false
     },
     {
+      "id": "ba8bc4bb-2411-4056-b2af-97602a749f40",
+      "name": "Relevance #",
+      "type": "number",
+      "type_config": {},
+      "date_created": "1756043341447",
+      "hide_from_guests": false,
+      "required": false
+    },
+    {
+      "id": "148cec0b-93db-4477-ae8c-d14c2326984d",
+      "name": "Relevance Date",
+      "type": "date",
+      "type_config": {},
+      "date_created": "1756043574604",
+      "hide_from_guests": false,
+      "required": false
+    },
+    {
+      "id": "63cd786f-4476-46a2-a909-580d1c3e858f",
+      "name": "Relevance Unit",
+      "type": "drop_down",
+      "type_config": {
+        "sorting": "manual",
+        "new_drop_down": true,
+        "options": [
+          {
+            "id": "030e955d-c463-4f3f-86c2-986e86494046",
+            "name": "Days",
+            "color": "#fff",
+            "orderindex": 0
+          },
+          {
+            "id": "60e59960-0667-4eef-a452-184fb2acb091",
+            "name": "Weeks",
+            "color": "#fff",
+            "orderindex": 1
+          },
+          {
+            "id": "7a4815d8-dcb7-4e00-bb87-c2e5349b192f",
+            "name": "Months",
+            "color": "#fff",
+            "orderindex": 2
+          }
+        ]
+      },
+      "date_created": "1756043494183",
+      "hide_from_guests": false,
+      "required": false
+    },
+    {
       "id": "db582668-de84-406e-90f6-0c4ebf891e4c",
       "name": "Scheduled",
       "type": "checkbox",
@@ -135,20 +201,58 @@ This is an exmaple of a "get task" response payload
       "required": false
     },
     {
-      "id": "333e61ba-ddde-4ed9-9284-6b7000bbfe57",
-      "name": "Start time",
+      "id": "ea56a6af-6e6d-4742-b792-02ca01350dad",
+      "name": "Start Time",
       "type": "date",
       "type_config": {},
-      "date_created": "1755083141646",
+      "date_created": "1756043032964",
+      "hide_from_guests": false,
+      "required": false
+    },
+    {
+      "id": "762c7fe8-9c6a-4e4d-819f-42a60a394646",
+      "name": "Vendor",
+      "type": "labels",
+      "type_config": {
+        "sorting": "manual",
+        "options": [
+          {
+            "id": "98b025ca-3052-4e51-acea-08a59d5f8853",
+            "label": "Amazon",status
+            "color": "#f9d900"
+          },
+          {
+            "id": "fd252bc7-7ef6-4cfd-9771-ca38a96ac686",
+            "label": "Temu",
+            "color": "#ff7800"
+          },
+          {
+            "id": "b0bc0a95-e40e-436c-9e18-d06a91ea8faa",
+            "label": "Ali Express",
+            "color": "#3397dd"
+          },
+          {
+            "id": "bcd18b9f-9541-492e-a0b9-47e921fb24a8",
+            "label": "דבאח",
+            "color": "#800000"
+          }
+        ]
+      },
+      "date_created": "1754660717778",
       "hide_from_guests": false,
       "required": false
     }
   ],
   "dependencies": [],
   "linked_tasks": [],
-  "locations": [],
+  "locations": [
+    {
+      "id": "901810374798",
+      "name": "Shopping"
+    }
+  ],
   "team_id": "90181045003",
-  "url": "https://app.clickup.com/t/86eu0k8gw",
+  "url": "https://app.clickup.com/t/86eudz1pu",
   "sharing": {
     "public": false,
     "public_share_expires_on": null,
@@ -170,20 +274,20 @@ This is an exmaple of a "get task" response payload
   },
   "permission_level": "create",
   "list": {
-    "id": "901806884681",
-    "name": "Tasks",
+    "id": "901810353944",
+    "name": "Open Issues",
     "access": true
   },
   "project": {
-    "id": "90185068812",
-    "name": "hidden",
-    "hidden": true,
+    "id": "90186941949",
+    "name": "ClickUp",
+    "hidden": false,
     "access": true
   },
   "folder": {
-    "id": "90185068812",
-    "name": "hidden",
-    "hidden": true,
+    "id": "90186941949",
+    "name": "ClickUp",
+    "hidden": false,
     "access": true
   },
   "space": {
@@ -191,4 +295,3 @@ This is an exmaple of a "get task" response payload
   },
   "attachments": []
 }
-[ClickUp] Successfully fetched task details for: 86eu0k8gw

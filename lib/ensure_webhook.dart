@@ -2,19 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'environment.dart' as env;
+import 'config.dart' as config;
 
 // -------- ClickUp API helpers --------
 
-const _base = 'https://api.clickup.com/api/v2';
-
-Map<String, String> _headers(String token) => {
-      'Authorization': token, // ClickUp expects the token directly, not 'Bearer ...'
-      'Content-Type': 'application/json',
-    };
-
 Future<void> ensureWebhook({required String endpointUrl}) async {
-  final existing = await _listWebhooks(env.token, env.teamId);
+  final existing = await _listWebhooks(config.api.token, config.api.teamId);
 
   // Find a webhook pointing to our endpoint that includes taskUpdated
   final match = existing.firstWhere(
@@ -26,8 +19,8 @@ Future<void> ensureWebhook({required String endpointUrl}) async {
     stdout.writeln('Webhook exists (id=${match['id']}) for $endpointUrl with ${match['events']}');
 
     // If we have a webhook but no secret, try to get the secret from the existing webhook
-    if (env.secret.isEmpty && match['secret'] != null) {
-      // Note: We can't modify the top-level secret variable from env.dart
+    if (config.server.webhookSecret.isEmpty && match['secret'] != null) {
+      // Note: We can't modify the top-level secret variable from config.dart
       // The secret will be available in the webhook response for verification
       stdout.writeln('Webhook secret found in ClickUp response');
     }
@@ -41,8 +34,11 @@ Future<void> ensureWebhook({required String endpointUrl}) async {
 
 Future<List<Map<String, dynamic>>> _listWebhooks(String token, String teamId) async {
   final resp = await http.get(
-    Uri.parse('$_base/team/$teamId/webhook'),
-    headers: _headers(token),
+    Uri.parse('${config.api.baseUrl}/team/$teamId/webhook'),
+    headers: {
+      'Authorization': token,
+      'Content-Type': 'application/json',
+    },
   );
 
   if (resp.statusCode >= 200 && resp.statusCode < 300) {

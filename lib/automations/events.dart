@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:timezone/timezone.dart' as tz;
 
-import 'environment.dart' as env;
+import '../config.dart' as config;
 import 'dart:convert'; // Added for jsonEncode
 import 'package:http/http.dart' as http; // Added for http
 
@@ -13,7 +13,83 @@ import 'package:http/http.dart' as http; // Added for http
 bool isEventTask(Map<String, dynamic> taskDetails) {
   // Check if the task's custom_item_id matches the event task type ID
   final customItemId = taskDetails['custom_item_id']?.toString();
-  return customItemId == env.eventTaskTypeId;
+  return customItemId == config.api.taskTypes.eventTaskTypeId;
+}
+
+/// Checks if a newly created event task has relevant fields set
+///
+/// [taskDetails] - Complete task details from ClickUp API
+/// Returns true if the task is an event and has start date, due date, relevance num, or relevance unit set
+bool isRelevantEventCreate(Map<String, dynamic> taskDetails) {
+  // First check if this is an event task
+  if (!isEventTask(taskDetails)) {
+    return false;
+  }
+
+  // Check if any relevant fields are set
+  final hasStartDate = taskDetails['start_date'] != null;
+  final hasDueDate = taskDetails['due_date'] != null;
+
+  // Check if relevance fields have values
+  final customFields = taskDetails['custom_fields'] as List? ?? [];
+  bool hasRelevanceNum = false;
+  bool hasRelevanceUnit = false;
+
+  for (final field in customFields) {
+    if (field['id'] == config.api.customFields.relevanceNumCustomFieldId && field['value'] != null) {
+      hasRelevanceNum = true;
+    }
+    if (field['id'] == config.api.customFields.relevanceUnitCustomFieldId && field['value'] != null) {
+      hasRelevanceUnit = true;
+    }
+  }
+
+  // Return true if any relevant field is set
+  return hasStartDate || hasDueDate || hasRelevanceNum || hasRelevanceUnit;
+}
+
+/// Checks if an event update is relevant (involves changes to important fields)
+///
+/// [taskDetails] - Complete task details from ClickUp API
+/// [webhookBody] - Original webhook payload for context
+/// Returns true if the update involves changes to Start date, Due date, Relevance num, or Relevance Unit
+bool isRelevantEventUpdate(Map<String, dynamic> taskDetails, Map<String, dynamic> webhookBody) {
+  // First check if this is an event task
+  if (!isEventTask(taskDetails)) {
+    return false;
+  }
+
+  // Check if there are any history items
+  final historyItems = webhookBody['history_items'] as List? ?? [];
+  if (historyItems.isEmpty) {
+    return false;
+  }
+
+  // Check each history item for relevant field changes
+  for (final item in historyItems) {
+    final field = item['field'];
+
+    // Check for date field changes
+    if (field == 'start_date' || field == 'due_date') {
+      return true;
+    }
+
+    // Check for custom field changes (relevance fields)
+    if (field == 'custom_field') {
+      final customField = item['custom_field'] as Map<String, dynamic>?;
+      if (customField != null) {
+        final customFieldId = customField['id'] as String?;
+
+        // Check if this is a relevance field change
+        if (customFieldId == config.api.customFields.relevanceNumCustomFieldId ||
+            customFieldId == config.api.customFields.relevanceUnitCustomFieldId) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
 }
 
 // -------- Event handling functions --------
@@ -112,10 +188,10 @@ Future<void> onEventUpdated(Map<String, dynamic> taskDetails, Map<String, dynami
       if (customField != null) {
         final customFieldId = customField['id'] as String?;
 
-        if (customFieldId == env.relevanceNumCustomFieldId) {
+        if (customFieldId == config.api.customFields.relevanceNumCustomFieldId) {
           stdout.writeln('[Events] Relevance number changed from $before to $after');
           await onRelevanceNumChanged(taskId, startDate, dueDate, relevanceNum, relevanceUnit);
-        } else if (customFieldId == env.relevanceUnitCustomFieldId) {
+        } else if (customFieldId == config.api.customFields.relevanceUnitCustomFieldId) {
           stdout.writeln('[Events] Relevance unit changed from $before to $after');
           await onRelevanceUnitChanged(taskId, startDate, dueDate, relevanceNum, relevanceUnit);
         }
@@ -147,12 +223,12 @@ DateTime? _parseTimestamp(dynamic timestamp) {
 (int?, RelevanceUnit?) _parseRelevanceValues(Map<String, dynamic> taskDetails) {
   try {
     final relevanceNumField = taskDetails['custom_fields']?.firstWhere(
-      (field) => field['id'] == env.relevanceNumCustomFieldId,
+      (field) => field['id'] == config.api.customFields.relevanceNumCustomFieldId,
       orElse: () => null,
     );
 
     final relevanceUnitField = taskDetails['custom_fields']?.firstWhere(
-      (field) => field['id'] == env.relevanceUnitCustomFieldId,
+      (field) => field['id'] == config.api.customFields.relevanceUnitCustomFieldId,
       orElse: () => null,
     );
 
@@ -385,10 +461,27 @@ enum EventStatus {
   OCCURRING,
   OCCURRED;
 
-  @override
-  String toString() {
-    return name.replaceAll('_', ' ');
+  static final Map<EventStatus, String> _map = {
+    EventStatus.NOT_SCHEDULED: 'not scheduled',
+    EventStatus.UPCOMING: 'upcoming',
+    EventStatus.OCCURRING: 'occurring',
+    EventStatus.OCCURRED: 'occurred',
+  };
+
+  static EventStatus fromString(String value) {
+    final entry = _map.entries.firstWhere(
+      (entry) => entry.value == value,
+      orElse: () => throw ArgumentError('Invalid event status: $value'),
+    );
+    return entry.key;
   }
+
+  String toDisplayString() {
+    return name[0] + name.substring(1).toLowerCase();
+  }
+
+  @override
+  String toString() => _map[this]!;
 }
 
 /// Calculates the current status of an event based on start and end times
@@ -425,22 +518,26 @@ enum RelevanceUnit {
   WEEKS,
   MONTHS;
 
+  static final Map<RelevanceUnit, String> _map = {
+    RelevanceUnit.DAYS: 'days',
+    RelevanceUnit.WEEKS: 'weeks',
+    RelevanceUnit.MONTHS: 'months',
+  };
+
   static RelevanceUnit fromString(String value) {
-    switch (value.toLowerCase()) {
-      case 'days':
-        return RelevanceUnit.DAYS;
-      case 'weeks':
-        return RelevanceUnit.WEEKS;
-      case 'months':
-        return RelevanceUnit.MONTHS;
-      default:
-        throw ArgumentError('Invalid relevance unit: $value');
-    }
+    final entry = _map.entries.firstWhere(
+      (entry) => entry.value == value,
+      orElse: () => throw ArgumentError('Invalid relevance unit: $value'),
+    );
+    return entry.key;
   }
 
   String toDisplayString() {
     return name[0] + name.substring(1).toLowerCase();
   }
+
+  @override
+  String toString() => _map[this]!;
 }
 
 /// Calculates the relevance date based on start/end times and relevance interval
@@ -504,9 +601,9 @@ Future<void> setStartTime(String taskId, DateTime? startTime) async {
 
     // Make the API call to update the custom field
     final response = await http.post(
-      Uri.parse('https://api.clickup.com/api/v2/task/$taskId/field/${env.startTimeCustomFieldId}'),
+      Uri.parse('${config.api.baseUrl}/task/$taskId/field/${config.api.customFields.startTimeCustomFieldId}'),
       headers: {
-        'Authorization': env.token,
+        'Authorization': config.api.token,
         'Content-Type': 'application/json',
       },
       body: jsonEncode(requestBody),
@@ -541,9 +638,9 @@ Future<void> setEndTime(String taskId, DateTime? endTime) async {
 
     // Make the API call to update the custom field
     final response = await http.post(
-      Uri.parse('https://api.clickup.com/api/v2/task/$taskId/field/${env.endTimeCustomFieldId}'),
+      Uri.parse('${config.api.baseUrl}/task/$taskId/field/${config.api.customFields.endTimeCustomFieldId}'),
       headers: {
-        'Authorization': env.token,
+        'Authorization': config.api.token,
         'Content-Type': 'application/json',
       },
       body: jsonEncode(requestBody),
@@ -578,9 +675,9 @@ Future<void> setRelevanceDate(String taskId, DateTime? relevanceDate) async {
 
     // Make the API call to update the custom field
     final response = await http.post(
-      Uri.parse('https://api.clickup.com/api/v2/task/$taskId/field/${env.relevanceDateCustomFieldId}'),
+      Uri.parse('${config.api.baseUrl}/task/$taskId/field/${config.api.customFields.relevanceDateCustomFieldId}'),
       headers: {
-        'Authorization': env.token,
+        'Authorization': config.api.token,
         'Content-Type': 'application/json',
       },
       body: jsonEncode(requestBody),
@@ -609,9 +706,9 @@ Future<void> setStatus(String taskId, EventStatus status) async {
   try {
     // Make the API call to update the task status
     final response = await http.put(
-      Uri.parse('https://api.clickup.com/api/v2/task/$taskId'),
+      Uri.parse('${config.api.baseUrl}/task/$taskId'),
       headers: {
-        'Authorization': env.token,
+        'Authorization': config.api.token,
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
