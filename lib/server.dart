@@ -13,7 +13,6 @@ import 'automations/task_dates.dart' as taskDates;
 
 // -------- Constants --------
 const int DEFAULT_PORT = 8080;
-const String DEFAULT_PUBLIC_BASE_URL = 'http://localhost:8080';
 
 // -------- Server setup and routing --------
 
@@ -79,14 +78,17 @@ Future<HttpServer> createServer() async {
     return Response.ok('ok');
   });
 
+  // Get port from environment variable or use default
+  final port = int.tryParse(Platform.environment['PORT'] ?? '') ?? DEFAULT_PORT;
+
   // Start HTTP server
   final server = await serve(
     logRequests().addHandler(app),
     InternetAddress.anyIPv4,
-    DEFAULT_PORT,
+    port,
   );
 
-  stdout.writeln('Listening on http://${server.address.host}:${server.port}  (public: $DEFAULT_PUBLIC_BASE_URL)');
+  stdout.writeln('Listening on http://${server.address.host}:${server.port}  (public: http://localhost:$port)');
 
   return server;
 }

@@ -3,7 +3,6 @@ import "package:yaml/yaml.dart";
 
 // -------- Constants --------
 const String DEFAULT_ENV_PATH = "env.yaml";
-const int DEFAULT_PORT = 8080;
 const String CLICKUP_BASE_URL = "https://api.clickup.com/api/v2";
 
 // -------- Configuration Classes --------
@@ -111,7 +110,7 @@ class TagNames {
 late final ClickupWorkspace clickup;
 
 // -------- Configuration Loading --------
-Map<String, dynamic>? _envConfigMap;
+Map<String, dynamic>? _envMap;
 
 dynamic _convertYamlToMap(dynamic yamlData) {
   if (yamlData is YamlMap) {
@@ -134,7 +133,7 @@ dynamic _convertYamlToMap(dynamic yamlData) {
   }
 }
 
-Map<String, dynamic> _loadConfig(String filePath, String configName) {
+Map<String, dynamic> _loadConfig(String filePath) {
   try {
     final file = File(filePath);
     if (!file.existsSync()) {
@@ -145,7 +144,7 @@ Map<String, dynamic> _loadConfig(String filePath, String configName) {
     final yamlString = file.readAsStringSync();
     final yamlMap = loadYaml(yamlString);
     final config = _convertYamlToMap(yamlMap);
-    stdout.writeln("[Env] Successfully loaded $configName configuration");
+    stdout.writeln("[Env] Successfully loaded environment");
     return config;
   } catch (e) {
     stderr.writeln("Error loading $filePath: $e");
@@ -154,11 +153,14 @@ Map<String, dynamic> _loadConfig(String filePath, String configName) {
 }
 
 void loadConfiguration() {
+  // Get env path from environment variable or use default
+  final envPath = Platform.environment['ENV_PATH'] ?? DEFAULT_ENV_PATH;
+
   // Load environment configuration file
-  _envConfigMap = _loadConfig(DEFAULT_ENV_PATH, "Environment");
+  _envMap = _loadConfig(envPath);
 
   // Create configuration object
-  clickup = ClickupWorkspace.fromMap(_envConfigMap!);
+  clickup = ClickupWorkspace.fromMap(_envMap!);
 
   stdout.writeln("[Env] Configuration loaded successfully");
 }
