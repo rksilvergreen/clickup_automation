@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
@@ -6,10 +6,14 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:crypto/crypto.dart';
-import 'config.dart' as config;
+import 'env.dart' as env;
 import 'automations/events.dart' as events;
 import 'automations/purchase_tags.dart' as purchaseTags;
 import 'automations/task_dates.dart' as taskDates;
+
+// -------- Constants --------
+const int DEFAULT_PORT = 8080;
+const String DEFAULT_PUBLIC_BASE_URL = 'http://localhost:8080';
 
 // -------- Server setup and routing --------
 
@@ -32,9 +36,9 @@ Future<HttpServer> createServer() async {
     // print(prettyJsonString(raw));
 
     // Verify webhook signature if secret is configured
-    if (config.server.webhookSecret.isNotEmpty) {
+    if (env.clickup.webhookSecret.isNotEmpty) {
       final signature = req.headers['x-signature'];
-      if (signature == null || !_verifyWebhookSignature(raw, signature, config.server.webhookSecret)) {
+      if (signature == null || !_verifyWebhookSignature(raw, signature, env.clickup.webhookSecret)) {
         stderr.writeln('[ClickUp] Invalid webhook signature');
         return Response.forbidden('Invalid signature');
       }
@@ -51,8 +55,8 @@ Future<HttpServer> createServer() async {
       stdout.writeln('[ClickUp] event=$event task=$taskId payloadSize=${raw.length}');
 
       if (['taskCreated', 'taskUpdated', 'taskTagUpdated'].contains(event)) {
-
-        final runtime = config.RuntimeConfig.reload();
+        // Note: Runtime config reload removed - automations will be enabled by default
+        // or can be controlled via environment variables if needed
 
         // Route to appropriate handler based on event type
         switch (event) {
@@ -79,10 +83,10 @@ Future<HttpServer> createServer() async {
   final server = await serve(
     logRequests().addHandler(app),
     InternetAddress.anyIPv4,
-    config.server.port,
+    DEFAULT_PORT,
   );
 
-  stdout.writeln('Listening on http://${server.address.host}:${server.port}  (public: ${config.server.publicBaseUrl})');
+  stdout.writeln('Listening on http://${server.address.host}:${server.port}  (public: $DEFAULT_PUBLIC_BASE_URL)');
 
   return server;
 }
@@ -107,9 +111,9 @@ bool _verifyWebhookSignature(String payload, String signature, String secret) {
 Future<Map<String, dynamic>?> fetchTaskDetails(String taskId) async {
   try {
     final response = await http.get(
-      Uri.parse('${config.api.baseUrl}/task/$taskId'),
+      Uri.parse('${env.CLICKUP_BASE_URL}/task/$taskId'),
       headers: {
-        'Authorization': config.api.token,
+        'Authorization': env.clickup.token,
         'Content-Type': 'application/json',
       },
     );
@@ -140,10 +144,11 @@ Future<void> _onTaskCreated(Map<String, dynamic> body, String? taskId) async {
           '[ClickUp] Task created - Name: ${taskDetails['name']}, Status: ${taskDetails['status']?['status']}');
 
       // Check if this is an event task and handle it accordingly
-      if (config.runtime.automation.events && events.isRelevantEventCreate(taskDetails)) {
+      // Note: Automation flags removed - automations will run by default
+      if (events.isRelevantEventCreate(taskDetails)) {
         stdout.writeln('[ClickUp] Detected relevant event task creation, forwarding to events handler');
         await events.onEventCreated(taskDetails);
-      } else if (config.runtime.automation.taskDates && taskDates.isRelevantDatesCreate(taskDetails)) {
+      } else if (taskDates.isRelevantDatesCreate(taskDetails)) {
         stdout.writeln('[ClickUp] Detected relevant dates task creation, forwarding to task dates handler');
         await taskDates.onTaskCreated(taskDetails);
       } else {
@@ -163,10 +168,11 @@ Future<void> _onTaskUpdated(Map<String, dynamic> body, String? taskId) async {
           '[ClickUp] Task updated - Name: ${taskDetails['name']}, Status: ${taskDetails['status']?['status']}');
 
       // Check if this is an event task and handle it accordingly
-      if (config.runtime.automation.events && events.isRelevantEventUpdate(taskDetails, body)) {
+      // Note: Automation flags removed - automations will run by default
+      if (events.isRelevantEventUpdate(taskDetails, body)) {
         stdout.writeln('[ClickUp] Detected event task, forwarding to events handler');
         await events.onEventUpdated(taskDetails, body);
-      } else if (config.runtime.automation.taskDates && taskDates.isRelevantDatesUpdate(body)) {
+      } else if (taskDates.isRelevantDatesUpdate(body)) {
         stdout.writeln('[ClickUp] Detected relevant dates task update, forwarding to task dates handler');
         await taskDates.onTaskUpdated(taskDetails, body);
       } else {
@@ -201,7 +207,8 @@ Future<void> _onTaskTagUpdated(Map<String, dynamic> body, String? taskId) async 
           stdout.writeln('[ClickUp] Tag added: $after');
           if (after != null && after is List && after.isNotEmpty) {
             final tagDetails = after[0] as Map<String, dynamic>;
-            if (config.runtime.automation.purchaseTags && purchaseTags.isRelevantPurchaseTagAdded(tagDetails)) {
+            // Note: Automation flags removed - automations will run by default
+            if (purchaseTags.isRelevantPurchaseTagAdded(tagDetails)) {
               await purchaseTags.onPurchaseTagAdded(taskDetails, tagDetails);
             }
           }
@@ -210,7 +217,8 @@ Future<void> _onTaskTagUpdated(Map<String, dynamic> body, String? taskId) async 
           stdout.writeln('[ClickUp] Tag removed: $before');
           if (before != null && before is List && before.isNotEmpty) {
             final tagDetails = before[0] as Map<String, dynamic>;
-            if (config.runtime.automation.purchaseTags && purchaseTags.isRelevantPurchaseTagRemoved(tagDetails)) {
+            // Note: Automation flags removed - automations will run by default
+            if (purchaseTags.isRelevantPurchaseTagRemoved(tagDetails)) {
               await purchaseTags.onPurchaseTagRemoved(taskDetails, tagDetails);
             }
           }

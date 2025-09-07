@@ -1,6 +1,5 @@
 import 'package:timezone/data/latest.dart';
-import 'config.dart' as config;
-import 'ensure_webhook.dart';
+import 'env.dart' as env;
 import 'server.dart';
 
 Future<void> main() async {
@@ -8,11 +7,8 @@ Future<void> main() async {
   initializeTimeZones();
 
   // Load configuration
-  config.loadConfiguration();
+  env.loadConfiguration();
 
   // Create and start the server
   await createServer();
-
-  // Ensure webhook exists
-  await ensureWebhook(endpointUrl: '${config.server.publicBaseUrl}/webhooks/clickup');
 }

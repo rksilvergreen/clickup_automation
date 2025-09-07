@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../config.dart' as config;
+import '../env.dart' as env;
 
 // -------- Task Status Enum --------
 enum TaskStatus {
@@ -131,9 +131,9 @@ Future<void> setTaskStatus(String taskId, TaskStatus status) async {
   try {
     // Make the API call to update the task status
     final response = await http.put(
-      Uri.parse('${config.api.baseUrl}/task/$taskId'),
+      Uri.parse('${env.CLICKUP_BASE_URL}/task/$taskId'),
       headers: {
-        'Authorization': config.api.token,
+        'Authorization': env.clickup.token,
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
