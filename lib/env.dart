@@ -2,7 +2,7 @@ import "dart:io";
 import "package:yaml/yaml.dart";
 
 // -------- Constants --------
-const String DEFAULT_ENV_PATH = "env.yaml";
+const String _DEFAULT_ENV_PATH = "env.yaml";
 const String CLICKUP_BASE_URL = "https://api.clickup.com/api/v2";
 
 // -------- Configuration Classes --------
@@ -11,6 +11,8 @@ const String CLICKUP_BASE_URL = "https://api.clickup.com/api/v2";
 class ClickupWorkspace {
   final String teamId;
   final String token;
+  final String webhookEndpointBaseUrl;
+  final String webhookEndpointRoute;
   final String webhookSecret;
   final TaskTypeIds taskTypeIds;
   final ListIds listIds;
@@ -20,6 +22,8 @@ class ClickupWorkspace {
   ClickupWorkspace({
     required this.teamId,
     required this.token,
+    required this.webhookEndpointBaseUrl,
+    required this.webhookEndpointRoute,
     required this.webhookSecret,
     required this.taskTypeIds,
     required this.listIds,
@@ -31,6 +35,8 @@ class ClickupWorkspace {
     return ClickupWorkspace(
       teamId: map["CLICKUP_TEAM_ID"] as String,
       token: map["CLICKUP_TOKEN"] as String,
+      webhookEndpointBaseUrl: map["CLICKUP_WEBHOOK_ENDPOINT_BASE_URL"] as String,
+      webhookEndpointRoute: map["CLICKUP_WEBHOOK_ENDPOINT_ROUTE"] as String,
       webhookSecret: map["CLICKUP_WEBHOOK_SECRET"] as String,
       taskTypeIds: TaskTypeIds.fromMap(map["task_type_ids"] as Map<String, dynamic>),
       listIds: ListIds.fromMap(map["list_ids"] as Map<String, dynamic>),
@@ -154,7 +160,7 @@ Map<String, dynamic> _loadConfig(String filePath) {
 
 void loadConfiguration() {
   // Get env path from environment variable or use default
-  final envPath = Platform.environment['ENV_PATH'] ?? DEFAULT_ENV_PATH;
+  final envPath = Platform.environment['ENV_PATH'] ?? _DEFAULT_ENV_PATH;
 
   // Load environment configuration file
   _envMap = _loadConfig(envPath);

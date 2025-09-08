@@ -1,0 +1,12 @@
+services:
+  app:
+    image: clickup-listener
+    # build: .
+    environment:
+      - APP_ENV=development
+      - PORT=8080
+      - ENV_PATH=/run/secrets/env.yaml
+    volumes:
+      - ./env.yaml:/run/secrets/env.yaml:ro
+    ports:
+      - "8080:8080"

@@ -29,10 +29,10 @@ Future<HttpServer> createServer() async {
   app.get('/health', (Request req) => Response.ok('ok'));
 
   // Webhook receiver
-  app.post('/webhooks/clickup', (Request req) async {
+  app.post(env.clickup.webhookEndpointRoute, (Request req) async {
     final raw = await req.readAsString();
 
-    // print(prettyJsonString(raw));
+    print(prettyJsonString(raw));
 
     // Verify webhook signature if secret is configured
     if (env.clickup.webhookSecret.isNotEmpty) {

@@ -1,0 +1,5 @@
+env*.yaml
+.git
+.dart_tool
+build
+*.log
