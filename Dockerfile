@@ -33,7 +33,7 @@
     # sensible defaults; can be overridden by compose
     ENV PORT=8080 \
         APP_ENV=production \
-        ENV_PATH=/run/secrets/env.yaml
+        ENV_PATH=/run/env
     
     EXPOSE 8080
     

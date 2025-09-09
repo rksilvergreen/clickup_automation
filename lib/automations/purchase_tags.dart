@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import '../env.dart' as env;
+import '../env/clickup.dart' as clickup;
 
 /// Checks if the added tag is a relevant purchase tag
 ///
@@ -8,7 +8,7 @@ import '../env.dart' as env;
 /// Returns true if the tag name matches the purchase tag name
 bool isRelevantPurchaseTagAdded(Map<String, dynamic> tagDetails) {
   final tagName = tagDetails['name'] as String?;
-  return tagName != null && tagName == env.clickup.tagNames.purchase;
+  return tagName != null && tagName == clickup.workspace.tagNames.purchase;
 }
 
 /// Checks if the removed tag is a relevant purchase tag
@@ -17,7 +17,7 @@ bool isRelevantPurchaseTagAdded(Map<String, dynamic> tagDetails) {
 /// Returns true if the tag name matches the purchase tag name
 bool isRelevantPurchaseTagRemoved(Map<String, dynamic> tagDetails) {
   final tagName = tagDetails['name'] as String?;
-  return tagName != null && tagName == env.clickup.tagNames.purchase;
+  return tagName != null && tagName == clickup.workspace.tagNames.purchase;
 }
 
 /// Handles when a purchase tag is added to a task
@@ -65,14 +65,14 @@ Future<void> onPurchaseTagRemoved(Map<String, dynamic> taskDetails, Map<String, 
 bool isShoppingTask(Map<String, dynamic> taskDetails) {
   // Check if the task's list ID matches the shopping list ID
   final taskListId = taskDetails['list']?['id']?.toString();
-  if (taskListId == env.clickup.listIds.shopping) {
+  if (taskListId == clickup.workspace.listIds.shopping) {
     return true;
   }
 
   // Also check if the task's location ID matches the shopping list ID
   final locations = taskDetails['locations'] as List? ?? [];
   final locationIds = locations.map((location) => location['id']?.toString()).toList();
-  if (locationIds.contains(env.clickup.listIds.shopping)) {
+  if (locationIds.contains(clickup.workspace.listIds.shopping)) {
     return true;
   }
 
@@ -87,9 +87,9 @@ Future<void> moveToShoppingList(String taskId, Map<String, dynamic> taskDetails)
   try {
     // Make the API call to move the task to the shopping list
     final response = await http.post(
-      Uri.parse('${env.CLICKUP_BASE_URL}/list/${env.clickup.listIds.shopping}/task/$taskId'),
+      Uri.parse('${clickup.API_BASE_URL}/list/${clickup.workspace.listIds.shopping}/task/$taskId'),
       headers: {
-        'Authorization': env.clickup.token,
+        'Authorization': clickup.token,
         'Content-Type': 'application/json',
       },
     );
@@ -113,9 +113,9 @@ Future<void> removeFromShoppingList(String taskId, Map<String, dynamic> taskDeta
   try {
     // Make the API call to remove the task from the shopping list
     final response = await http.delete(
-      Uri.parse('${env.CLICKUP_BASE_URL}/list/${env.clickup.listIds.shopping}/task/$taskId'),
+      Uri.parse('${clickup.API_BASE_URL}/list/${clickup.workspace.listIds.shopping}/task/$taskId'),
       headers: {
-        'Authorization': env.clickup.token,
+        'Authorization': clickup.token,
         'Content-Type': 'application/json',
       },
     );

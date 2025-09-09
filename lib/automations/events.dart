@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:timezone/timezone.dart' as tz;
 
-import '../env.dart' as env;
+import '../env/clickup.dart' as clickup;
 import 'dart:convert'; // Added for jsonEncode
 import 'package:http/http.dart' as http; // Added for http
 
@@ -13,7 +13,7 @@ import 'package:http/http.dart' as http; // Added for http
 bool isEventTask(Map<String, dynamic> taskDetails) {
   // Check if the task's custom_item_id matches the event task type ID
   final customItemId = taskDetails['custom_item_id']?.toString();
-  return customItemId == env.clickup.taskTypeIds.event;
+  return customItemId == clickup.workspace.taskTypeIds.event;
 }
 
 /// Checks if a newly created event task has relevant fields set
@@ -36,10 +36,10 @@ bool isRelevantEventCreate(Map<String, dynamic> taskDetails) {
   bool hasRelevanceUnit = false;
 
   for (final field in customFields) {
-    if (field['id'] == env.clickup.customFieldIds.relevanceNum && field['value'] != null) {
+    if (field['id'] == clickup.workspace.customFieldIds.relevanceNum && field['value'] != null) {
       hasRelevanceNum = true;
     }
-    if (field['id'] == env.clickup.customFieldIds.relevanceUnit && field['value'] != null) {
+    if (field['id'] == clickup.workspace.customFieldIds.relevanceUnit && field['value'] != null) {
       hasRelevanceUnit = true;
     }
   }
@@ -81,8 +81,8 @@ bool isRelevantEventUpdate(Map<String, dynamic> taskDetails, Map<String, dynamic
         final customFieldId = customField['id'] as String?;
 
         // Check if this is a relevance field change
-        if (customFieldId == env.clickup.customFieldIds.relevanceNum ||
-            customFieldId == env.clickup.customFieldIds.relevanceUnit) {
+        if (customFieldId == clickup.workspace.customFieldIds.relevanceNum ||
+            customFieldId == clickup.workspace.customFieldIds.relevanceUnit) {
           return true;
         }
       }
@@ -188,10 +188,10 @@ Future<void> onEventUpdated(Map<String, dynamic> taskDetails, Map<String, dynami
       if (customField != null) {
         final customFieldId = customField['id'] as String?;
 
-        if (customFieldId == env.clickup.customFieldIds.relevanceNum) {
+        if (customFieldId == clickup.workspace.customFieldIds.relevanceNum) {
           stdout.writeln('[Events] Relevance number changed from $before to $after');
           await onRelevanceNumChanged(taskId, startDate, dueDate, relevanceNum, relevanceUnit);
-        } else if (customFieldId == env.clickup.customFieldIds.relevanceUnit) {
+        } else if (customFieldId == clickup.workspace.customFieldIds.relevanceUnit) {
           stdout.writeln('[Events] Relevance unit changed from $before to $after');
           await onRelevanceUnitChanged(taskId, startDate, dueDate, relevanceNum, relevanceUnit);
         }
@@ -223,12 +223,12 @@ DateTime? _parseTimestamp(dynamic timestamp) {
 (int?, RelevanceUnit?) _parseRelevanceValues(Map<String, dynamic> taskDetails) {
   try {
     final relevanceNumField = taskDetails['custom_fields']?.firstWhere(
-      (field) => field['id'] == env.clickup.customFieldIds.relevanceNum,
+      (field) => field['id'] == clickup.workspace.customFieldIds.relevanceNum,
       orElse: () => null,
     );
 
     final relevanceUnitField = taskDetails['custom_fields']?.firstWhere(
-      (field) => field['id'] == env.clickup.customFieldIds.relevanceUnit,
+      (field) => field['id'] == clickup.workspace.customFieldIds.relevanceUnit,
       orElse: () => null,
     );
 
@@ -601,9 +601,9 @@ Future<void> setStartTime(String taskId, DateTime? startTime) async {
 
     // Make the API call to update the custom field
     final response = await http.post(
-      Uri.parse('${env.CLICKUP_BASE_URL}/task/$taskId/field/${env.clickup.customFieldIds.startTime}'),
+      Uri.parse('${clickup.API_BASE_URL}/task/$taskId/field/${clickup.workspace.customFieldIds.startTime}'),
       headers: {
-        'Authorization': env.clickup.token,
+        'Authorization': clickup.token,
         'Content-Type': 'application/json',
       },
       body: jsonEncode(requestBody),
@@ -638,9 +638,9 @@ Future<void> setEndTime(String taskId, DateTime? endTime) async {
 
     // Make the API call to update the custom field
     final response = await http.post(
-      Uri.parse('${env.CLICKUP_BASE_URL}/task/$taskId/field/${env.clickup.customFieldIds.endTime}'),
+      Uri.parse('${clickup.API_BASE_URL}/task/$taskId/field/${clickup.workspace.customFieldIds.endTime}'),
       headers: {
-        'Authorization': env.clickup.token,
+        'Authorization': clickup.token,
         'Content-Type': 'application/json',
       },
       body: jsonEncode(requestBody),
@@ -675,9 +675,9 @@ Future<void> setRelevanceDate(String taskId, DateTime? relevanceDate) async {
 
     // Make the API call to update the custom field
     final response = await http.post(
-      Uri.parse('${env.CLICKUP_BASE_URL}/task/$taskId/field/${env.clickup.customFieldIds.relevanceDate}'),
+      Uri.parse('${clickup.API_BASE_URL}/task/$taskId/field/${clickup.workspace.customFieldIds.relevanceDate}'),
       headers: {
-        'Authorization': env.clickup.token,
+        'Authorization': clickup.token,
         'Content-Type': 'application/json',
       },
       body: jsonEncode(requestBody),
@@ -706,9 +706,9 @@ Future<void> setStatus(String taskId, EventStatus status) async {
   try {
     // Make the API call to update the task status
     final response = await http.put(
-      Uri.parse('${env.CLICKUP_BASE_URL}/task/$taskId'),
+      Uri.parse('${clickup.API_BASE_URL}/task/$taskId'),
       headers: {
-        'Authorization': env.clickup.token,
+        'Authorization': clickup.token,
         'Content-Type': 'application/json',
       },
       body: jsonEncode({

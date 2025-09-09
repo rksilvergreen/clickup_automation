@@ -1,16 +1,16 @@
 import 'package:timezone/data/latest.dart';
-import 'env.dart' as env;
+import 'env/env.dart' as env;
 import 'server.dart';
-import 'webhook.dart';
+import 'webhooks.dart';
 
 Future<void> main() async {
   // Initialize timezone database
   initializeTimeZones();
 
-  // Load configuration
-  env.loadConfiguration();
+  // Set Environment
+  env.set();
 
-  // Ensure webhook is created
+  // Ensure webhooks are alive and active
   await ensureWebhook();
 
   // Create and start the server

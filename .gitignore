@@ -5,6 +5,10 @@ config/runtime.yaml
 .env.local
 .env.production
 
+# Run environment files (exclude template)
+run/env/*
+!run/env/clickup.template.yaml
+
 # Compiled files
 *.exe
 *.dart.js

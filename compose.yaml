@@ -5,8 +5,8 @@ services:
     environment:
       - APP_ENV=development
       - PORT=8080
-      - ENV_PATH=/run/secrets/env.yaml
+      - ENV_PATH=/run/env
     volumes:
-      - ./env.yaml:/run/secrets/env.yaml:ro
+      - .run/env/clickup.yaml:/run/env/clickup.yaml:ro
     ports:
       - "8080:8080"
