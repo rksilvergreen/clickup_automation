@@ -1,0 +1,21 @@
+services:
+  app:
+    build: .
+    image: clickup-listener
+    profiles: ["app"]
+    environment:
+      - APP_ENV=prod
+      - PORT=8080
+      - ENV_PATH=/run/env
+    volumes:
+      - ./run/env/clickup.yaml:/run/env/clickup.yaml:ro
+    ports:
+      - "8080:8080"
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=eyJhIjoiNGY5N2FiYjFjODk2NmVhNjkyYzU5MTk0OTA0MmM3MmMiLCJ0IjoiYmMyNmUyMDAtOGIwYy00YjYzLTk3MjItNjRkYTk3NGMzM2E5IiwicyI6Ik5EWTRaak5tTmpZdFpHUmlZaTAwTkdVNExUbGlNMk10WkdSaE56UXhNVGxpWmpneiJ9

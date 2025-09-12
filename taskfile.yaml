@@ -1,0 +1,90 @@
+version: '3'
+
+tasks:
+  app-run:
+    desc: "Run the Dart app on host (usage: task app-run -- dev|prod)"
+    silent: true
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            CLICKUP_ENV_FILE=run/env/clickup.dev.yaml dart run lib/main.dart
+            ;;
+          "prod")
+            CLICKUP_ENV_FILE=run/env/clickup.prod.yaml dart run lib/main.dart
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+
+  app-start:
+    desc: "Start the app container (usage: task app-start -- dev|prod)"
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            docker compose -f infrastructure/docker/compose.dev.yaml up app
+            ;;
+          "prod")
+            docker compose -f infrastructure/docker/compose.prod.yaml up app
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+
+  app-stop:
+    desc: "Stop the app container (usage: task app-stop -- dev|prod)"
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            docker compose -f infrastructure/docker/compose.dev.yaml down app
+            ;;
+          "prod")
+            docker compose -f infrastructure/docker/compose.prod.yaml down app
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+
+  tunnel-start:
+    desc: "Open the Cloudflare tunnel using Docker Compose (usage: task tunnel-start -- dev|prod)"
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            docker compose -f infrastructure/docker/compose.dev.yaml up tunnel
+            ;;
+          "prod")
+            docker compose -f infrastructure/docker/compose.prod.yaml up tunnel
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+  
+  tunnel-stop:
+    desc: "Stop the Cloudflare tunnel using Docker Compose (usage: task tunnel-stop -- dev|prod)"
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            docker compose -f infrastructure/docker/compose.dev.yaml down tunnel
+            ;;
+          "prod")
+            docker compose -f infrastructure/docker/compose.prod.yaml down tunnel
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+
+  

@@ -1,8 +1,16 @@
 import 'dart:io';
 
 // -------- Constants --------
-const String ENV_FILE_NAME = "clickup.yaml";
 const String API_BASE_URL = "https://api.clickup.com/api/v2";
+
+// -------- Environment File Name Getter --------
+String get envFileName {
+  final clickupEnvFile = Platform.environment['CLICKUP_ENV_FILE'];
+  if (clickupEnvFile == null || clickupEnvFile.isEmpty) {
+    throw ArgumentError('CLICKUP_ENV_FILE environment variable must be set');
+  }
+  return clickupEnvFile;
+}
 
 // -------- Configuration Classes --------
 

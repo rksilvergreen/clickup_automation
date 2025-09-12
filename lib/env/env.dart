@@ -49,7 +49,7 @@ Map<String, dynamic> _loadConfig(String filePath) {
 /// Gets the environment path from ENV_PATH environment variable
 /// Falls back to "env" if not set
 String _getEnvFolderPath() {
-  final envPath = Platform.environment['ENV_PATH'] ?? "env";
+  final envPath = Platform.environment['ENV_PATH'] ?? "run/env";
   stdout.writeln("[Env] Using environment path: $envPath");
   return envPath;
 }
@@ -61,9 +61,9 @@ String _getEnvFilePath(String fileName) {
   return envFilePath;
 }
 
-/// Loads the ClickUp configuration from env/clickup.yaml
+/// Loads the ClickUp configuration from env/clickup.{dev|prod}.yaml
 void _setClickupEnv() {
-  final envPath = _getEnvFilePath(clickup.ENV_FILE_NAME);
+  final envPath = _getEnvFilePath(clickup.envFileName);
   final envMap = _loadConfig(envPath);
   clickup.set(envMap);
 }
