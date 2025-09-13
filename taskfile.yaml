@@ -8,10 +8,10 @@ tasks:
       - |
         case "{{.CLI_ARGS}}" in
           "dev"|"")
-            CLICKUP_ENV_FILE=run/env/clickup.dev.yaml dart run lib/main.dart
+            CLICKUP_ENV_FILE=app/runtime/env/clickup.dev.yaml dart run app/lib/main.dart
             ;;
           "prod")
-            CLICKUP_ENV_FILE=run/env/clickup.prod.yaml dart run lib/main.dart
+            CLICKUP_ENV_FILE=app/runtime/env/clickup.prod.yaml dart run app/lib/main.dart
             ;;
           *)
             echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"

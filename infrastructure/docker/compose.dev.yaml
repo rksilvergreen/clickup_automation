@@ -4,9 +4,9 @@ services:
     image: rksilvergreen/clickup-listener:latest
     environment:
       - PORT=8080
-      - CLICKUP_ENV_FILE=/run/env/clickup.dev.yaml
+      - CLICKUP_ENV_FILE=/runtime/env/clickup.dev.yaml
     volumes:
-      - ./run/env/clickup.dev.yaml:/run/env/clickup.dev.yaml:ro
+      - ./app/runtime/env/clickup.dev.yaml:/runtime/env/clickup.dev.yaml:ro
     ports:
       - "8080:8080"
 

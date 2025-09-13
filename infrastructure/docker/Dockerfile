@@ -5,11 +5,11 @@
     WORKDIR /app
     
     # Cache dependencies
-    COPY pubspec.* ./
+    COPY app/pubspec.* ./
     RUN dart pub get
     
     # Bring in sources
-    COPY . .
+    COPY app/ ./
     RUN dart pub get --offline
     
     # Compile to a single executable
@@ -17,7 +17,6 @@
     
     # --- runtime stage: tiny image that only runs the binary ---
     FROM debian:bookworm-slim AS runtime
-    WORKDIR /app
     
     # Install timezone data and set timezone to Jerusalem
     RUN apt-get update && apt-get install -y tzdata && rm -rf /var/lib/apt/lists/*
@@ -32,8 +31,7 @@
     
     # sensible defaults; can be overridden by compose
     ENV PORT=8080 \
-        APP_ENV=production \
-        ENV_PATH=/run/env
+        CLICKUP_ENV_FILE=/runtime/env/clickup.prod.yaml
     
     EXPOSE 8080
     
