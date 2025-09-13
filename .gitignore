@@ -8,11 +8,11 @@ pubspec.lock
 *.dart.js.map
 
 # Environment and configuration files
-.env
-.env.local
-.env.production
-.env.*
-!env.example
+*.env
+*.env.local
+*.env.production
+*.env.*
+!*.env.example
 
 # Runtime environment files
 app/runtime/env/*
@@ -20,8 +20,8 @@ app/runtime/env/*
 !app/runtime/env/*.example.yaml
 
 # Tunnel environment files
-infrastructure/tunnel/tunnel.prod.env
 infrastructure/tunnel/*.env
+infrastructure/tunnel/tunnel.*.env
 !infrastructure/tunnel/*.template.env
 !infrastructure/tunnel/*.example.env
 
