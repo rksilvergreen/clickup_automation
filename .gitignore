@@ -30,7 +30,7 @@ docker-compose.override.yml
 .docker/
 
 # IDE files
-.vscode/
+#.vscode/
 .idea/
 *.swp
 *.swo

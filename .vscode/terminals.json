@@ -1,0 +1,23 @@
+{
+    "autorun": true,
+    "terminals": [
+        {
+            "name": " General"
+        },
+        {
+            "name": " Tunnel",
+            "icon": "arrow-swap",
+            "color": "terminal.ansiYellow"
+        },
+        {
+            "name": " App (Host)",
+            "icon": "play",
+            "color": "terminal.ansiGreen"
+        },
+        {
+            "name": " App (Container)",
+            "icon": "vm-running",
+            "color": "terminal.ansiCyan"
+        }
+    ]
+}
